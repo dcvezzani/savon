@@ -40,8 +40,14 @@ module Savon
     end
 
     def build(locals = {}, &block)
-      set_locals(locals, block)
-      Builder.new(@name, @wsdl, @globals, @locals)
+      if(locals.keys.include?(:body_content))
+        file_name = locals.delete(:body_content)
+        body_content = get_body_content_from_file(file_name)
+        build_using_content(body_content, locals, &block)
+      else
+        set_locals(locals, block)
+        Builder.new(@name, @wsdl, @globals, @locals)
+      end
     end
 
     def call(locals = {}, &block)
@@ -56,6 +62,20 @@ module Savon
     end
 
     private
+
+    # passes on locals and block
+    # returns an object that responds to #to_s and provides
+    # a fully qualified SOAP message, ready to be sent
+    def build_using_content(content, locals = {}, &block)
+      set_locals(locals, block)
+      content
+    end
+
+    # read the specified file
+    # extracted this out so that unit tests were more easily implemented
+    def get_body_content_from_file(file_name)
+      IO.read(file_name)
+    end
 
     def create_response(response)
       if multipart_supported?

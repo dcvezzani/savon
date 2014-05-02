@@ -61,6 +61,17 @@ describe Savon::Operation do
       expect(builder).to be_a(Savon::Builder)
       expect(builder.to_s).to include('<tns:VerifyAddress><tns:test>message</tns:test></tns:VerifyAddress>')
     end
+
+    it "returns object that responds to #to_s and represents a fully qualified SOAP message" do
+      soap_message = "<tns:Blah><tns:junk>bleh</tns:junk></tns:Blah>"
+      operation = new_operation(:verify_address, wsdl, globals)
+
+      operation.expects(:get_body_content_from_file).returns(soap_message)
+      builder = operation.build(:body_content => "some-file.xml")
+
+      expect(builder).to be_a(String)
+      expect(builder.to_s).to include(soap_message)
+    end
   end
 
   describe "#call" do
